@@ -1,0 +1,245 @@
+#! /bin/bash
+#Definir escopo do ip.
+#clear
+
+## Atribuindo argumentos as variaveis.
+
+
+
+if [[ -z "$1" || "$1" =~ --grupo[0-9] ]];then
+echo -e "\e[01;32m    Bem vindo, o programa é simples funciona de dois modos!
+    passando a correspondencia logo no inicio ex: srcipt-ip 192.168.x.x.
+    ou usando o questionarioa seguir para definir cada um dos campos do IP.
+    \n"
+echo -e "\e[01;37mBem, vamos começar!\nDigite o valor para cada um dos 4 grupos de numeros que compoem um endereço ipv4\nEx: 192.168.0.1"
+echo "Vamos definir o primeiro grupo ex: ???.168.0.1, digite um "x" para os grupos que quiser gerar a faixa de ip ex: x.168.0.1"
+read G1
+echo
+echo -e "\e[01;37mAgora o valor do segundo grupo ex: $G1.168.0.1, digite \e[03;32m(x) \e[01;37mpara gerar um range ip ex: $G1.x.0.1 \e[03;32mou \e[01;37mum numero de por onde começar"
+read G2
+echo
+echo -e "\e[01;37mAgora o valor do terceiro grupo ex: $G1.$G2.0.1, digite \e[03;32m(x) \e[01;37mpara gerar um range ip ex: $G1.$G2.x.1 \e[03;32mou \e[01;37mum numero de por onde começar"
+read G3
+echo
+echo -e "\e[01;37mAgora o valor do quarto grupo ex: $G1.$G2.$G3.1, digite \e[03;32m(x) \e[01;37mpara gerar um range ip ex: $G1.$G2.$G3.x \e[03;32mou \e[01;37mum numero de por onde começar"
+read G4
+IP="$G1.$G2.$G3.$G4"
+fi
+#################################
+if [ -z $IP ];then
+IP=$1
+fi
+
+#### Variaveis G1 G2 etc guardam os 4 conjuntos de numeros do IP.
+G1=${IP%%\.*}
+G4=${IP##*\.}
+############
+IP=${IP#*\.}
+IP=${IP%\.*}
+############
+G2=${IP%%\.*}
+G3=${IP##*\.}
+#echo "Imprimindo  G: $G1 $G2 $G3 $G4"
+#exit 1
+
+#### Variaveis T1 T2 etc, armazenam o Teto do range ip.
+T1="";T2="";T3="";T4=""
+
+#### Variaveis Tm1 Tm2 etc, armazenam o Teto Mínimo do range ip.
+Tm1="";Tm2="";Tm3="";Tm4=""
+
+#### Variaveis TM1 TM2 etc, armazenam o Teto Máximo do range ip.
+TM1="";TM2="";TM3="";TM4=""
+
+#### Grupo IP 1
+if [[ "$G1" =~ - ]];then
+    Tm1=${G1%%[-]*}  ## Minimo
+    TM1=${G1##*[-]}  ## Maximo
+else
+    if [[ $G1 = "x" ]];then
+        Tm1=1    ## Minimo
+        TM1=255  ## Maximo
+    else
+        T1=$G1
+    fi
+fi
+
+#### Grupo IP 2
+if [[ "$G2" =~ - ]];then
+    Tm2=${G2%%[-]*}  ## Minimo
+    TM2=${G2##*[-]}  ## Maximo
+else
+    if [[ $G2 = "x" ]];then
+        Tm2=0    ## Minimo
+        TM2=255  ## Maximo
+    else
+        T2=$G2
+    fi
+fi
+
+#### Grupo IP 3
+if [[ "$G3" =~ - ]];then
+    Tm3=${G3%%[-]*}  ## Minimo
+    TM3=${G3##*[-]}  ## Maximo
+else
+    if [[ $G3 = "x" ]];then
+        Tm3=0    ## Minimo
+        TM3=255  ## Maximo
+    else
+        T3=$G3
+    fi
+fi
+
+#### Grupo IP 4
+if [[ "$G4" =~ - ]];then
+    Tm4=${G4%%[-]*}  ## Minimo
+    TM4=${G4##*[-]}  ## Maximo
+else
+    if [[ $G4 = "x" ]];then
+        Tm4=1    ## Minimo
+        TM4=255  ## Maximo
+    else
+        T4=$G4
+    fi
+fi
+
+echo -e "\e[01;37mFicaram assim suas escolhas! \e[03;32m$G1.$G2.$G3.$G4\e[01;37m"
+echo "Está tudo correto? (s/n)"
+read start
+if test "$start" = "s"
+then
+echo "Começando!!!"
+else
+echo "Saindo!!!"
+exit 0
+fi
+echo
+echo "### Arquivo gerado com linha de comando: (script-ip $G1.$G2.$G3.$G4)" > ip_list.txt
+
+
+###################################################
+ ##### Área de loops para determinar ips ########
+###################################################
+#### IF 1
+if [[ -n $Tm1 ]];then
+    #### Grupo ip 1
+    if [[ -z $Tm2 && -z $Tm3 &&-z $Tm4 ]];then
+        for ((a=$Tm1;a<$TM1+1;a++));do
+            echo "$a.$G2.$G3.$G4" >> ip_list.txt
+        done
+    fi
+
+    if [[ -n $Tm2 ]];then
+        for ((a=$Tm1;a<$TM1+1;a++));do
+            #### IF 2
+            #### Grupo ip 2
+            for ((b=$Tm2;b<TM2+1;b++));do
+                #### IF 3
+                if [[ -n $Tm3 ]];then
+
+                    #### Grupo ip 3
+                    for ((c=$Tm3;c<TM3+1;c++));do
+                        #### IF 4
+                        if [[ -n $Tm4 ]];then
+
+                            #### Grupo ip 4
+                            for ((d=$Tm4;d<TM4+1;d++));do
+                                echo "$a.$b.$c.$d" >> ip_list.txt
+                            done
+                        fi
+                        #echo "$a.$b.$c.$G4" >> ip_list.txt
+                    done
+                elif [[ -n $Tm4 ]];then
+                    #### Grupo ip 4
+                    for ((d=$Tm4;d<TM4+1;d++));do
+                        echo "$a.$b.$G3.$d" >> ip_list.txt
+                    done
+                fi
+                #echo "$a.$b.$G3.$G4" >> ip_list.txt
+            done
+            #echo "$a.$G2.$G3.$G4" >> ip_list.txt
+        done
+    elif [[ -n $Tm3 ]];then
+        for ((a=$Tm1;a<$TM1+1;a++));do
+            #echo "$a.$G2.$G3.$G4" >> ip_list.txt
+            #### Grupo ip 3
+        for ((c=$Tm3;c<TM3+1;c++));do
+            #### IF 4
+            if [[ -n $Tm4 ]];then
+
+                #### Grupo ip 4
+                for ((d=$Tm4;d<TM4+1;d++));do
+                    echo "$a.$G2.$c.$d" >> ip_list.txt
+                done
+            fi
+            echo "$a.$G2.$c.$G4" >> ip_list.txt
+        done
+        done
+    elif [[ -n $Tm4 ]];then
+        for ((a=$Tm1;a<$TM1+1;a++));do
+            #### Grupo ip 4
+            for ((d=$Tm4;d<TM4+1;d++));do
+                echo "$a.$G2.$G3.$d" >> ip_list.txt
+            done
+        done
+    fi
+
+elif [[ -n $Tm2 ]];then
+    #### Grupo ip 2
+    for ((b=$Tm2;b<TM2+1;b++));do
+        #### IF 3
+        if [[ -n $Tm3 ]];then
+
+            #### Grupo ip 3
+            for ((c=$Tm3;c<TM3+1;c++));do
+                #### IF 4
+                if [[ -n $Tm4 ]];then
+
+                    #### Grupo ip 4
+                    for ((d=$Tm4;d<TM4+1;d++));do
+                        echo "$G1.$b.$c.$d" >> ip_list.txt
+                    done
+                else
+                    echo "$G1.$b.$c.$G4" >> ip_list.txt
+                fi
+
+            done
+        elif [[ -n $Tm4 ]];then
+            #### Grupo ip 4
+            for ((d=$Tm4;d<TM4+1;d++));do
+                echo "$G1.$b.$G3.$d" >> ip_list.txt
+            done
+        else
+            echo "$G1.$b.$G3.$G4" >> ip_list.txt
+        fi
+
+    done
+elif [[ -n $Tm3 ]];then
+    #### Grupo ip 3
+    for ((c=$Tm3;c<TM3+1;c++));do
+        #### IF 4
+        if [[ -n $Tm4 ]];then
+
+            #### Grupo ip 4
+            for ((d=$Tm4;d<TM4+1;d++));do
+                echo "$G1.$G2.$c.$d" >> ip_list.txt
+            done
+        else
+            echo "$G1.$G2.$c.$G4" >> ip_list.txt
+        fi
+
+    done
+elif [[ -n $Tm4 ]];then
+    #### Grupo ip 4
+    for ((d=$Tm4;d<TM4+1;d++));do
+        echo "$G1.$G2.$G3.$d" >> ip_list.txt
+    done
+
+fi
+
+###################################################
+            ##### FIM loop ########
+###################################################
+echo
+echo -e "Concluído!\nProjeto salvo na sua pasta atual com o nome ip_list.txt\nPara visualizar digite cat ./ip_list.txt\nSaindo..."
+exit 0
