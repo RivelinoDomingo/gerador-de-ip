@@ -1,21 +1,21 @@
 #! /bin/bash
 
-if [[ -z "$1" || "$1" =~ --grupo[0-9] ]];then
+if [[ -z "$1" || $1 = "-h" ]];then
 echo -e "\e[01;32m\n    Bem vindo, o programa é simples funciona de dois modos!
-    passando a correspondencia logo no inicio ex: srcipt-ip 192.168.x.100-254
+    passando a correspondencia logo no inicio ex: $0 192.168.x.100-254
     ou usando o questionario a seguir para definir cada um dos campos do IP.
     \n"
 echo -e "\e[01;37mBem, vamos começar!\nDigite o valor para cada um dos 4 grupos de numeros que compoem um endereço ipv4.\nEx: 192.168.0.1"
-echo -e "Vamos definir o primeiro grupo ex: ???.168.0.1, digite \e[03;32m(x)\e[01;37m; ele será como (0-255), ou defina seu proprio range (10-100) ex: x.168.0.1 ou 10-100.168.0.1"
+echo -e "Vamos definir o primeiro grupo ex: ???.168.0.1, digite \e[03;32m(x)\e[01;37m; ele será como 0-255, ou defina seu proprio range ex: 10-100 ex: x.168.0.1 ou 10-100.168.0.1"
 read G1
 echo
-echo -e "\e[01;37mAgora o valor do segundo grupo ex: $G1.???.0.1, digite \e[03;32m(x)\e[01;37m; ele será como (0-255), ou defina seu proprio range (10-100)"
+echo -e "\e[01;37mAgora o valor do segundo grupo ex: $G1.???.0.1, digite \e[03;32m(x)\e[01;37m; ele será como 0-255, ou defina seu proprio range ex: 10-100"
 read G2
 echo
-echo -e "\e[01;37mAgora o valor do terceiro grupo ex: $G1.$G2.???.1, digite \e[03;32m(x)\e[01;37m; ele será como (0-255), ou defina seu proprio range (10-100)"
+echo -e "\e[01;37mAgora o valor do terceiro grupo ex: $G1.$G2.???.1, digite \e[03;32m(x)\e[01;37m; ele será como 0-255, ou defina seu proprio range ex: 10-100"
 read G3
 echo
-echo -e "\e[01;37mAgora o valor do quarto grupo ex: $G1.$G2.$G3.???, digite \e[03;32m(x)\e[01;37m; ele será como (0-255), ou defina seu proprio range (10-100)"
+echo -e "\e[01;37mAgora o valor do quarto grupo ex: $G1.$G2.$G3.???, digite \e[03;32m(x)\e[01;37m; ele será como 0-255, ou defina seu proprio range ex: 10-100"
 read G4
 IP="$G1.$G2.$G3.$G4"
 fi
@@ -103,18 +103,20 @@ else
     fi
 fi
 
-echo -e "\e[01;37mFicaram assim suas escolhas! \e[03;32m$G1.$G2.$G3.$G4\e[01;37m"
-echo "Está tudo correto? (s/n)"
+echo -e "\e[01;37mAssim ficaram as suas escolhas! \e[03;32m$G1.$G2.$G3.$G4\e[01;37m
+Está correto? (\e[05;32mS\e[00;37m/n)"
 read start
-if test "$start" = "s"
-then
-echo "Começando!!!"
+if ! [[ $start =~ [nN] ]];then
+    if [[ -z $TM1 && -z $TM2 && -z $TM3 && -z $TM4 ]];then
+        echo -e "\e[03;31mSaindo por não ter nada a ser feito,\nnão foi passado nenhum range! use -h para ajuda!\e[01;37m"
+        exit 1
+    fi
+    echo "Começando!!!"
 else
-echo "Saindo!!!"
-exit 0
+    echo "Saindo!!!"
+    exit 0
 fi
-echo
-echo "### Lista de IPs gerado apartir dessa linha comando: (script-ip $G1.$G2.$G3.$G4)" > $NOME
+echo "### Lista de IPs gerado apartir dessa linha comando: ($0 $G1.$G2.$G3.$G4)" > $NOME
 
 
 ###################################################
